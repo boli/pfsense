@@ -1,0 +1,40 @@
+#!/bin/sh
+
+# Define the path to the test file
+CONFIGXML="/conf/config.xml"
+CONFIGBACKUPS="/conf/backup/"
+LATESTCONFBACKUP=$(find "$CONFIGBACKUPS" -type f -name "*.xml" -size +0 | sort -n | tail -n 1 )
+
+
+# Function to check if the file size is zero
+check_file_size() {
+    if [ -s "$CONFIGXML" ]; then
+        return 1  # File is not empty
+    else
+        return 0  # File is empty (size is zero)
+    fi
+}
+
+# Main script
+if check_file_size; then
+    echo "File size is zero. Sleeping for 60 seconds..."
+    sleep 60
+
+    if check_file_size; then
+        #echo "File size is still zero. Rebooting the machine."
+        # Add your reboot command here
+        # For example: sudo reboot
+	cp $LATESTCONFBACKUP $CONFIGXML
+	rm /tmp/config.cache
+	sync
+	reboot
+
+    else
+        sleep 1
+	#echo "File size is no longer zero. Exiting without reboot."
+    fi
+else
+    sleep 1
+	#echo "File is not empty. Exiting without reboot."
+fi
+
